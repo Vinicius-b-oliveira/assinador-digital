@@ -15,9 +15,8 @@ Convenção de status: `[ ]` pendente · `[~]` em andamento · `[x]` concluído 
 - [x] Pacotes base instalados (activitylog, pdf, resend, flysystem-s3, signature_pad)
 - [x] Bucket MinIO criado automaticamente via `minio-init` no compose
 - [x] Páginas de Auth/Profile refatoradas para shadcn (pasta `Components/` removida)
-- [ ] Primeiro commit + push do repositório
-- [ ] Branch `develop` criada e configurada como default
-- [ ] Convidar o outro dev no GitHub
+- [x] Primeiro commit + push do repositório
+- [x] Branch `develop` criada e configurada como default
 
 ### Dev A — Documentos
 
