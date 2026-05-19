@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "open-southeners.laravel-pint",
+        "onecentlin.laravel-blade"
+    ]
+}
