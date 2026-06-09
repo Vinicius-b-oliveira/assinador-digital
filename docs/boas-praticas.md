@@ -197,14 +197,22 @@ class SigningService
 
 Models são declarativos. Sem lógica de negócio, sem chamadas a serviços externos.
 
+> **Activitylog v5:** o trait fica em `Spatie\Activitylog\Models\Concerns\LogsActivity` (o caminho antigo `Spatie\Activitylog\Traits\LogsActivity` foi removido) e o `LogOptions` em `Spatie\Activitylog\Support\LogOptions`. As propriedades estáticas `$logAttributes`/`$logOnlyDirty` não existem mais — a configuração vai no método `getActivitylogOptions()`. Não há helper `$model->activities()`; consulte `Spatie\Activitylog\Models\Activity` por `subject` quando precisar dos logs.
+
 ```php
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
+
 class Document extends Model
 {
     use LogsActivity, SoftDeletes;
 
-    protected $casts = [
-        'status' => DocumentStatus::class, // enum backed
-    ];
+    protected function casts(): array
+    {
+        return [
+            'status' => DocumentStatus::class, // enum backed
+        ];
+    }
 
     // Relations
     public function user(): BelongsTo
@@ -239,8 +247,12 @@ class Document extends Model
     }
 
     // Activitylog
-    protected static $logAttributes = ['title', 'status', 'description'];
-    protected static $logOnlyDirty = true;
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['title', 'description', 'status'])
+            ->logOnlyDirty();
+    }
 }
 ```
 

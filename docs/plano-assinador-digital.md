@@ -573,13 +573,20 @@ sail artisan migrate
 
 **Uso do activitylog no projeto:**
 ```php
-// Log automático — adicionar trait no Model
+// Log automático — adicionar trait no Model (activitylog v5)
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
+
 class Document extends Model
 {
     use LogsActivity;
 
-    protected static $logAttributes = ['title', 'status', 'description'];
-    protected static $logOnlyDirty = true;
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['title', 'description', 'status'])
+            ->logOnlyDirty();
+    }
 }
 
 // Log manual para eventos de negócio (assinatura, envio, recusa)
