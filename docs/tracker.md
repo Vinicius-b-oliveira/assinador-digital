@@ -15,25 +15,33 @@ Convenção de status: `[ ]` pendente · `[~]` em andamento · `[x]` concluído 
 - [x] Pacotes base instalados (activitylog, pdf, resend, flysystem-s3, signature_pad)
 - [x] Bucket MinIO criado automaticamente via `minio-init` no compose
 - [x] Páginas de Auth/Profile refatoradas para shadcn (pasta `Components/` removida)
-- [ ] Primeiro commit + push do repositório
-- [ ] Branch `develop` criada e configurada como default
-- [ ] Convidar o outro dev no GitHub
+- [x] Primeiro commit + push do repositório
+- [x] Branch `develop` criada e configurada como default
 
-### Dev A — Documentos
+### Dev A — Documentos (branch `feat/documents`)
 
-- [ ] Migration `documents` + Enum `DocumentStatus`
-- [ ] Model `Document` (relations, scopes, casts, LogsActivity, SoftDeletes)
-- [ ] Factory + states (`draft`, `pending`, `completed`, `cancelled`, `withSignatories`, `readyToSign`)
-- [ ] `DocumentStorageService` (upload/temporaryUrl/delete via disk s3)
-- [ ] `DocumentService` (create, list, delete)
-- [ ] `DocumentPolicy` (view, update, delete, send)
-- [ ] `StoreDocumentRequest` + `UpdateDocumentRequest`
-- [ ] `DocumentDTO` (fromModel, collection)
-- [ ] `DocumentController` (index, create, store, show, destroy)
-- [ ] Tela: `Pages/Documents/Index.tsx` (lista + filtros + paginação)
-- [ ] Tela: `Pages/Documents/Create.tsx` (upload PDF)
-- [ ] Tela: `Pages/Documents/Show.tsx` (visualização do PDF)
-- [ ] Testes Pest cobrindo CRUD e policy
+- [x] Migration `documents` + Enum `DocumentStatus`
+- [x] Model `Document` (scopes, casts, LogsActivity, SoftDeletes) — relations de signatários ficam para o Dev B (ver seam abaixo)
+- [x] Factory + states (`draft`, `pending`, `completed`, `cancelled`) — `withSignatories`/`readyToSign` ficam para o Dev B
+- [x] `DocumentStorageService` (store/delete via disk s3 + `inlineResponse` para stream) — usamos stream protegido pela policy no lugar de `temporaryUrl` (MinIO interno `minio:9000` não é acessível pelo browser)
+- [x] `DocumentService` (create, list paginada/filtrada, update, delete soft)
+- [x] `DocumentPolicy` (view, update, delete, send) — `send` por ora só checa dono+draft; falta o "tem ao menos 1 signatário" (Dev B)
+- [x] `StoreDocumentRequest` + `UpdateDocumentRequest`
+- [x] `DocumentDTO` (fromModel, collection) — `signatoryCount`/`signedCount` default 0 até o Dev B
+- [x] `DocumentController` (index, create, store, show, edit, update, destroy, file)
+- [x] Tela: `Pages/Documents/Index.tsx` (lista + filtros + paginação)
+- [x] Tela: `Pages/Documents/Create.tsx` (upload PDF + progresso)
+- [x] Tela: `Pages/Documents/Show.tsx` (preview do PDF via iframe + download + excluir)
+- [x] Tela: `Pages/Documents/Edit.tsx` (editar título/descrição em rascunho) — adicionada além do escopo original
+- [x] Testes Pest cobrindo CRUD, policy e rota de stream (14 testes)
+- [x] Base `Controller` com trait `AuthorizesRequests` (Laravel 11+ removeu do skeleton)
+
+> **Integração Dev A para Dev B.** A branch de Documentos é auto-contida; ao mergear os signatários, o Dev B precisa costurar três pontos (marcados como `TODO(DevB)` no código):
+>
+> 1. **`app/Models/Document.php`** — adicionar relations `signatories(): HasMany` (com `->orderBy('order')`) e `signatures(): HasMany`.
+> 2. **`app/Http/Controllers/DocumentController.php`** — nos métodos `index`/`show`, trocar a query por `withCount(['signatories', 'signatures'])` para os contadores do DTO refletirem valores reais (o DTO já lê `signatories_count`/`signatures_count` com fallback 0; nenhuma mudança no DTO necessária).
+> 3. **`database/factories/DocumentFactory.php`** — adicionar os states `withSignatories(int)` e `readyToSign()` usando `Signatory::factory()`.
+> 4. **`app/Policies/DocumentPolicy.php`** — no método `send`, somar a checagem `$document->signatories()->exists()`.
 
 ### Dev B — Signatários
 
@@ -103,9 +111,13 @@ Convenção de status: `[ ]` pendente · `[~]` em andamento · `[x]` concluído 
 
 Use esta seção para registrar coisas que apareceram durante o desenvolvimento e que precisam ser endereçadas depois — bugs pequenos, refatoramentos, decisões em aberto.
 
-- [ ] `User::documents()` relation precisa ser adicionada quando o model `Document` existir
+- [x] `User::documents()` relation adicionada (junto com o model `Document`)
 - [ ] Decidir UX da reordenação de signatários (drag-and-drop vs. setas)
 - [ ] Validar limite real de upload de PDF (atual: 20MB) com a banca/orientador
+- [ ] `DocumentService::delete` faz soft delete e **preserva** o arquivo no S3; criar rotina de purge (force delete) que limpe o storage quando for descartar de vez
+- [x] Exemplos de `activitylog` nas docs corrigidos para a API v5 (`getActivitylogOptions()` + namespaces `Models\Concerns\LogsActivity` / `Support\LogOptions`)
+- [ ] Paginação na `Documents/Index.tsx` usa `dangerouslySetInnerHTML` para os labels do Laravel (`«`/`»`); avaliar trocar por componente de paginação tipado se incomodar
+- [ ] Verificar schema da tabela `activity_log` (não tem `batch_uuid`; ok para log simples, revisitar se for usar `LogBatch`)
 
 ---
 

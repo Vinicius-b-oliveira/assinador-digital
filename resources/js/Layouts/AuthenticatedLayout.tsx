@@ -60,6 +60,12 @@ export default function Authenticated({
                             >
                                 Dashboard
                             </NavItem>
+                            <NavItem
+                                href={route('documents.index')}
+                                active={route().current('documents.*')}
+                            >
+                                Documentos
+                            </NavItem>
                         </div>
                     </div>
 
@@ -105,6 +111,12 @@ export default function Authenticated({
                                         className="hover:bg-accent rounded-md px-3 py-2 text-sm"
                                     >
                                         Dashboard
+                                    </Link>
+                                    <Link
+                                        href={route('documents.index')}
+                                        className="hover:bg-accent rounded-md px-3 py-2 text-sm"
+                                    >
+                                        Documentos
                                     </Link>
                                     <Link
                                         href={route('profile.edit')}
