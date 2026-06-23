@@ -4,8 +4,10 @@ namespace Database\Factories;
 
 use App\Enums\DocumentStatus;
 use App\Models\Document;
+use App\Models\Signatory;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Support\Str;
 
 /**
@@ -50,5 +52,18 @@ class DocumentFactory extends Factory
         return $this->state(['status' => DocumentStatus::Cancelled]);
     }
 
-    // TODO(DevB): states withSignatories()/readyToSign() entram quando o SignatoryFactory existir.
+    public function withSignatories(int $count = 2): static
+    {
+        return $this->has(
+            Signatory::factory()->count($count)->sequence(
+                fn (Sequence $sequence) => ['order' => $sequence->index + 1]
+            ),
+            'signatories'
+        );
+    }
+
+    public function readyToSign(): static
+    {
+        return $this->pending()->withSignatories(2);
+    }
 }

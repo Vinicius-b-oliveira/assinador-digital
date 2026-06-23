@@ -45,9 +45,9 @@ Convenção de status: `[ ]` pendente · `[~]` em andamento · `[x]` concluído 
 
 ### Dev B — Signatários
 
-- [ ] Migration `signatories` + Enum `SignatoryStatus`
-- [ ] Model `Signatory` (relations, scopes `pending`, casts, token uuid)
-- [ ] Factory + states (`pending`, `signed`, `declined`)
+- [x] Migration `signatories` + Enum `SignatoryStatus`
+- [x] Model `Signatory` (relations, scopes `pending`, casts, token uuid)
+- [x] Factory + states (`pending`, `signed`, `declined`)
 - [ ] `SignatoryService` (add, reorder, remove, gerar token, advanceFlow)
 - [ ] `SignatoryPolicy` (manage no dono, enquanto draft)
 - [ ] `StoreSignatoryRequest`
