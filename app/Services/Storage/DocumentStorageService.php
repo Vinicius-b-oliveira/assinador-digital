@@ -5,6 +5,7 @@ namespace App\Services\Storage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentStorageService
@@ -30,6 +31,10 @@ class DocumentStorageService
      */
     public function inlineResponse(string $path, string $downloadName): StreamedResponse
     {
+        if (! Storage::disk(self::DISK)->exists($path)) {
+            throw new NotFoundHttpException('Arquivo do documento não encontrado no storage.');
+        }
+
         return Storage::disk(self::DISK)->response(
             $path,
             $downloadName,

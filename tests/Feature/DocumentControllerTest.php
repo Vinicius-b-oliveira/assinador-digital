@@ -99,6 +99,14 @@ test('the file route streams the pdf inline for the owner and forbids strangers'
         ->assertForbidden();
 });
 
+test('the file route returns not found when the stored pdf is missing', function () {
+    $document = Document::factory()->create();
+
+    $this->actingAs($document->user)
+        ->get(route('documents.file', $document))
+        ->assertNotFound();
+});
+
 test('a draft document can be updated by its owner', function () {
     $document = Document::factory()->draft()->create();
 
