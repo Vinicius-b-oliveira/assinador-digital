@@ -5,8 +5,10 @@ namespace App\Services\Storage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use League\Flysystem\UnableToCheckExistence;
+use League\Flysystem\UnableToRetrieveMetadata;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class DocumentStorageService
 {
@@ -31,16 +33,20 @@ class DocumentStorageService
      */
     public function inlineResponse(string $path, string $downloadName): StreamedResponse
     {
-        if (! Storage::disk(self::DISK)->exists($path)) {
+        try {
+            if (! Storage::disk(self::DISK)->exists($path)) {
+                throw new NotFoundHttpException('Arquivo do documento não encontrado no storage.');
+            }
+
+            return Storage::disk(self::DISK)->response(
+                $path,
+                $downloadName,
+                ['Content-Type' => 'application/pdf'],
+                'inline',
+            );
+        } catch (UnableToCheckExistence|UnableToRetrieveMetadata) {
             throw new NotFoundHttpException('Arquivo do documento não encontrado no storage.');
         }
-
-        return Storage::disk(self::DISK)->response(
-            $path,
-            $downloadName,
-            ['Content-Type' => 'application/pdf'],
-            'inline',
-        );
     }
 
     public function delete(string $path): void
