@@ -147,3 +147,11 @@ test('a non-draft document cannot be deleted', function () {
 
     expect($document->fresh())->not->toBeNull();
 });
+
+test('a draft document can only be sent when it has signatories', function () {
+    $emptyDocument = Document::factory()->draft()->create();
+    $readyDocument = Document::factory()->draft()->withSignatories()->create();
+
+    expect($emptyDocument->user->can('send', $emptyDocument))->toBeFalse()
+        ->and($readyDocument->user->can('send', $readyDocument))->toBeTrue();
+});

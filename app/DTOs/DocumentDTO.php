@@ -27,7 +27,6 @@ final class DocumentDTO
             status: $document->status->value,
             fileOriginalName: $document->file_original_name,
             createdAt: $document->created_at->toIso8601String(),
-            // TODO(DevB): contagens vêm de withCount(['signatories','signatures']) após o merge de Signatory.
             signatoryCount: $document->signatories_count ?? 0,
             signedCount: $document->signatures_count ?? 0,
         );

@@ -48,11 +48,11 @@ Convenção de status: `[ ]` pendente · `[~]` em andamento · `[x]` concluído 
 - [x] Migration `signatories` + Enum `SignatoryStatus`
 - [x] Model `Signatory` (relations, scopes `pending`, casts, token uuid)
 - [x] Factory + states (`pending`, `signed`, `declined`)
-- [ ] `SignatoryService` (add, reorder, remove, gerar token, advanceFlow)
-- [ ] `SignatoryPolicy` (manage no dono, enquanto draft)
-- [ ] `StoreSignatoryRequest`
-- [ ] `SignatoryDTO`
-- [ ] `SignatoryController` (store, update, destroy, reorder)
+- [x] `SignatoryService` (add, reorder, remove, gerar token, advanceFlow)
+- [x] `SignatoryPolicy` (manage no dono, enquanto draft)
+- [x] `StoreSignatoryRequest`
+- [x] `SignatoryDTO`
+- [x] `SignatoryController` (store, update, destroy, reorder)
 - [ ] Tela: gerenciar signatários (dentro do `Documents/Show.tsx` ou rota dedicada)
 - [ ] Testes Pest
 

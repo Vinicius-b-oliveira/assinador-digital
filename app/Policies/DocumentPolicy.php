@@ -28,7 +28,8 @@ class DocumentPolicy
     public function send(User $user, Document $document): bool
     {
         return $this->owns($user, $document)
-            && $document->status === DocumentStatus::Draft;
+            && $document->status === DocumentStatus::Draft
+            && $document->signatories()->exists();
     }
 
     private function owns(User $user, Document $document): bool

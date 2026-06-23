@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DTOs\DocumentDTO;
+use App\DTOs\SignatoryDTO;
 use App\Enums\DocumentStatus;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
@@ -53,8 +54,14 @@ class DocumentController extends Controller
     {
         $this->authorize('view', $document);
 
+        $document->load('signatories')->loadCount([
+            'signatories',
+            'signatories as signatures_count' => fn ($query) => $query->where('status', 'signed'),
+        ]);
+
         return Inertia::render('Documents/Show', [
             'document' => DocumentDTO::fromModel($document)->toArray(),
+            'signatories' => SignatoryDTO::collection($document->signatories),
             'fileUrl' => route('documents.file', $document),
         ]);
     }

@@ -35,6 +35,10 @@ class DocumentService
     public function list(User $user, ?DocumentStatus $status = null): LengthAwarePaginator
     {
         return Document::ownedBy($user)
+            ->withCount([
+                'signatories',
+                'signatories as signatures_count' => fn ($query) => $query->where('status', 'signed'),
+            ])
             ->when($status, fn ($query) => $query->where('status', $status))
             ->latest()
             ->paginate(15)
