@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\ActivityDTO;
 use App\DTOs\DocumentDTO;
 use App\DTOs\SignatoryDTO;
 use App\Enums\DocumentStatus;
@@ -15,14 +16,15 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Activitylog\Models\Activity;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class DocumentController extends Controller
 {
     public function __construct(
-        private readonly DocumentService        $service,
-        private readonly SignatoryService       $signatoryService,
+        private readonly DocumentService $service,
+        private readonly SignatoryService $signatoryService,
         private readonly DocumentStorageService $storage,
     ) {}
 
@@ -62,9 +64,12 @@ class DocumentController extends Controller
             'signatories as signatures_count' => fn ($query) => $query->where('status', 'signed'),
         ]);
 
+        $activities = Activity::forSubject($document)->with('causer')->latest()->get();
+
         return Inertia::render('Documents/Show', [
             'document' => DocumentDTO::fromModel($document)->toArray(),
             'signatories' => SignatoryDTO::collection($document->signatories),
+            'activities' => ActivityDTO::collection($activities),
             'fileUrl' => route('documents.file', $document),
         ]);
     }

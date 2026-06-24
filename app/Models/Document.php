@@ -60,7 +60,14 @@ class Document extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['title', 'description', 'status'])
-            ->logOnlyDirty();
+            ->logOnly(['title', 'description'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->setDescriptionForEvent(fn (string $eventName): string => match ($eventName) {
+                'created' => 'Documento criado',
+                'updated' => 'Documento atualizado',
+                'deleted' => 'Documento excluído',
+                default => $eventName,
+            });
     }
 }

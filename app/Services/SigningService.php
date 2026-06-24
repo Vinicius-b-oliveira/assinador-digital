@@ -69,6 +69,12 @@ readonly class SigningService
                 'ip_address' => $ip,
             ]);
 
+            activity()
+                ->performedOn($locked->document)
+                ->withProperties(['ip' => $ip, 'signatory' => $locked->name, 'email' => $locked->email])
+                ->event('signed')
+                ->log($locked->name.' assinou o documento');
+
             $this->signatoryService->advanceFlow($locked->document);
 
             Mail::to($locked->document->user->email)->queue(new SignatureRecordedMail($locked));
@@ -93,6 +99,12 @@ readonly class SigningService
                 'status' => SignatoryStatus::Declined,
                 'ip_address' => $ip,
             ]);
+
+            activity()
+                ->performedOn($locked->document)
+                ->withProperties(['ip' => $ip, 'signatory' => $locked->name, 'email' => $locked->email])
+                ->event('declined')
+                ->log($locked->name.' recusou a assinatura');
 
             $locked->document->update(['status' => DocumentStatus::Cancelled]);
         });

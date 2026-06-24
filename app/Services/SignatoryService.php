@@ -91,6 +91,11 @@ class SignatoryService
         DB::transaction(function () use ($document) {
             $document->update(['status' => DocumentStatus::Pending]);
 
+            activity()
+                ->performedOn($document)
+                ->event('sent')
+                ->log('Documento enviado para assinatura');
+
             $this->dispatchNextInvitation($document);
         });
     }
@@ -122,6 +127,11 @@ class SignatoryService
         }
 
         $document->update(['status' => DocumentStatus::Completed]);
+
+        activity()
+            ->performedOn($document)
+            ->event('completed')
+            ->log('Documento concluído — todos assinaram');
 
         Mail::to($document->user->email)->queue(new DocumentCompletedMail($document));
     }
