@@ -4,10 +4,13 @@ namespace App\Services;
 
 use App\Enums\DocumentStatus;
 use App\Enums\SignatoryStatus;
+use App\Mail\SigningInvitationMail;
 use App\Models\Document;
 use App\Models\Signatory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class SignatoryService
 {
@@ -39,6 +42,9 @@ class SignatoryService
         return $signatory;
     }
 
+    /**
+     * @throws Throwable
+     */
     public function remove(Signatory $signatory): void
     {
         DB::transaction(function () use ($signatory) {
@@ -50,7 +56,8 @@ class SignatoryService
     }
 
     /**
-     * @param  array<int, int>  $orderedIds
+     * @param array<int, int> $orderedIds
+     * @throws Throwable
      */
     public function reorder(Document $document, array $orderedIds): void
     {
@@ -72,15 +79,46 @@ class SignatoryService
         });
     }
 
+    /**
+     * Marca o documento como pendente e convida o primeiro signatário da ordem.
+     * @throws Throwable
+     */
+    public function send(Document $document): void
+    {
+        DB::transaction(function () use ($document) {
+            $document->update(['status' => DocumentStatus::Pending]);
+
+            $this->dispatchNextInvitation($document);
+        });
+    }
+
+    /**
+     * Convida o próximo signatário pendente na ordem, se houver.
+     */
+    public function dispatchNextInvitation(Document $document): ?Signatory
+    {
+        $next = $document->signatories()->pending()->orderBy('order')->first();
+
+        if ($next !== null) {
+            Mail::to($next->email)->queue(new SigningInvitationMail($next));
+        }
+
+        return $next;
+    }
+
     public function advanceFlow(Document $document): void
     {
         if ($document->status !== DocumentStatus::Pending || ! $document->signatories()->exists()) {
             return;
         }
 
-        if (! $document->signatories()->pending()->exists()) {
-            $document->update(['status' => DocumentStatus::Completed]);
+        if ($document->signatories()->pending()->exists()) {
+            $this->dispatchNextInvitation($document);
+
+            return;
         }
+
+        $document->update(['status' => DocumentStatus::Completed]);
     }
 
     private function compactOrder(Document $document): void

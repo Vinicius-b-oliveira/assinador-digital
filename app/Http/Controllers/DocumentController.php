@@ -9,18 +9,21 @@ use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Models\Document;
 use App\Services\DocumentService;
+use App\Services\SignatoryService;
 use App\Services\Storage\DocumentStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 class DocumentController extends Controller
 {
     public function __construct(
-        private DocumentService $service,
-        private DocumentStorageService $storage,
+        private readonly DocumentService        $service,
+        private readonly SignatoryService       $signatoryService,
+        private readonly DocumentStorageService $storage,
     ) {}
 
     public function index(Request $request): Response
@@ -91,6 +94,18 @@ class DocumentController extends Controller
         $this->service->delete($document);
 
         return to_route('documents.index');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function send(Document $document): RedirectResponse
+    {
+        $this->authorize('send', $document);
+
+        $this->signatoryService->send($document);
+
+        return to_route('documents.show', $document);
     }
 
     public function file(Document $document): StreamedResponse

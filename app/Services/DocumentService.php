@@ -9,7 +9,7 @@ use App\Services\Storage\DocumentStorageService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 
-class DocumentService
+readonly class DocumentService
 {
     public function __construct(private DocumentStorageService $storage) {}
 

@@ -8,10 +8,11 @@ use App\Models\Document;
 use App\Models\Signatory;
 use App\Services\SignatoryService;
 use Illuminate\Http\RedirectResponse;
+use Throwable;
 
 class SignatoryController extends Controller
 {
-    public function __construct(private SignatoryService $service) {}
+    public function __construct(private readonly SignatoryService $service) {}
 
     public function store(StoreSignatoryRequest $request, Document $document): RedirectResponse
     {
@@ -31,6 +32,9 @@ class SignatoryController extends Controller
         return to_route('documents.show', $signatory->document);
     }
 
+    /**
+     * @throws Throwable
+     */
     public function destroy(Signatory $signatory): RedirectResponse
     {
         $this->authorize('delete', $signatory);
@@ -41,6 +45,9 @@ class SignatoryController extends Controller
         return to_route('documents.show', $document);
     }
 
+    /**
+     * @throws Throwable
+     */
     public function reorder(ReorderSignatoriesRequest $request, Document $document): RedirectResponse
     {
         $this->authorize('manage', [Signatory::class, $document]);
