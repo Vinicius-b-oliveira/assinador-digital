@@ -29,6 +29,7 @@ import {
     Download,
     Mail,
     Pencil,
+    Send,
     Trash2,
     UserPlus,
     XCircle,
@@ -204,10 +205,20 @@ function DeleteSignatoryDialog({ signatory }: { signatory: SignatoryData }) {
 
 export default function Show({ document, signatories, fileUrl }: ShowProps) {
     const isDraft = document.status === 'draft';
+    const hasSignatories = signatories.length > 0;
+    const nextPending = signatories.find(
+        (signatory) => signatory.status === 'pending',
+    );
     const form = useForm<SignatoryForm>({ name: '', email: '' });
 
     const destroy = () => {
         router.delete(route('documents.destroy', document.id));
+    };
+
+    const send = () => {
+        router.post(route('documents.send', document.id), undefined, {
+            preserveScroll: true,
+        });
     };
 
     const addSignatory = (event: FormEvent) => {
@@ -261,6 +272,48 @@ export default function Show({ document, signatories, fileUrl }: ShowProps) {
                                     Baixar
                                 </a>
                             </Button>
+
+                            {isDraft && (
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button
+                                            size="sm"
+                                            disabled={!hasSignatories}
+                                            title={
+                                                hasSignatories
+                                                    ? undefined
+                                                    : 'Adicione ao menos um signatário'
+                                            }
+                                        >
+                                            <Send className="h-4 w-4" />
+                                            Enviar para assinatura
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>
+                                                Enviar para assinatura
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                                O primeiro signatário receberá o
+                                                convite por e-mail. Após o
+                                                envio, o documento não poderá
+                                                mais ser editado.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <DialogFooter>
+                                            <DialogClose asChild>
+                                                <Button variant="outline">
+                                                    Cancelar
+                                                </Button>
+                                            </DialogClose>
+                                            <Button onClick={send}>
+                                                Enviar
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
 
                             {isDraft && (
                                 <Button asChild variant="outline" size="sm">
@@ -326,6 +379,12 @@ export default function Show({ document, signatories, fileUrl }: ShowProps) {
                             {document.signedCount}/{document.signatoryCount}{' '}
                             assinaram
                         </p>
+                        {document.status === 'pending' && nextPending && (
+                            <p className="flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-300">
+                                <Clock3 className="h-3.5 w-3.5" />
+                                Aguardando assinatura de {nextPending.name}
+                            </p>
+                        )}
                     </div>
 
                     <section className="border-border bg-card text-card-foreground rounded-lg border p-6 shadow-xs">
@@ -430,7 +489,7 @@ export default function Show({ document, signatories, fileUrl }: ShowProps) {
                                                 status={signatory.status}
                                             />
                                         </div>
-                                        <p className="text-muted-foreground mt-1 flex items-center gap-1 break-all text-sm">
+                                        <p className="text-muted-foreground mt-1 flex items-center gap-1 text-sm break-all">
                                             <Mail className="h-3.5 w-3.5" />
                                             {signatory.email}
                                         </p>
