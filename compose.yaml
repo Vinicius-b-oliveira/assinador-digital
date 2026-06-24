@@ -93,6 +93,20 @@ services:
             "
         networks:
             - sail
+    pulse.check:
+        image: 'sail-8.5/app'
+        command: 'php artisan pulse:check'
+        restart: unless-stopped
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            pgsql:
+                condition: service_healthy
 networks:
     sail:
         driver: bridge
