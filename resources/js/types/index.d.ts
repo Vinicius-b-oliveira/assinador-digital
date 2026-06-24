@@ -36,6 +36,16 @@ export interface SignatoryData {
     signedAt: string | null;
 }
 
+export interface ActivityData {
+    id: number;
+    event: string | null;
+    description: string;
+    causer: string | null;
+    signatory: string | null;
+    ip: string | null;
+    createdAt: string;
+}
+
 export interface PaginationLink {
     url: string | null;
     label: string;

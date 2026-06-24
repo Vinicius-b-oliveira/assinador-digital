@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import {
+    ActivityData,
     DocumentData,
     PageProps,
     SignatoryData,
@@ -24,9 +25,11 @@ import {
     ArrowDown,
     ArrowLeft,
     ArrowUp,
+    BellRing,
     CheckCircle2,
     Clock3,
     Download,
+    FileText,
     Mail,
     Pencil,
     Send,
@@ -40,6 +43,7 @@ import { type SyntheticEvent } from 'react';
 type ShowProps = PageProps<{
     document: DocumentData;
     signatories: SignatoryData[];
+    activities: ActivityData[];
     fileUrl: string;
 }>;
 
@@ -73,6 +77,36 @@ const signatoryStatusConfig: Record<
 
 function formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString('pt-BR');
+}
+
+function formatDateTime(iso: string): string {
+    return new Date(iso).toLocaleString('pt-BR');
+}
+
+const activityIconConfig: Record<
+    string,
+    { icon: LucideIcon; className: string }
+> = {
+    created: { icon: FileText, className: 'text-muted-foreground' },
+    sent: { icon: Send, className: 'text-blue-600 dark:text-blue-400' },
+    signed: {
+        icon: CheckCircle2,
+        className: 'text-emerald-600 dark:text-emerald-400',
+    },
+    completed: {
+        icon: CheckCircle2,
+        className: 'text-emerald-600 dark:text-emerald-400',
+    },
+    declined: { icon: XCircle, className: 'text-destructive' },
+};
+
+function ActivityIcon({ event }: { event: string | null }) {
+    const { icon: Icon, className } = activityIconConfig[event ?? ''] ?? {
+        icon: Clock3,
+        className: 'text-muted-foreground',
+    };
+
+    return <Icon className={`h-4 w-4 shrink-0 ${className}`} />;
 }
 
 function SignatoryStatusBadge({ status }: { status: SignatoryStatus }) {
@@ -203,8 +237,14 @@ function DeleteSignatoryDialog({ signatory }: { signatory: SignatoryData }) {
     );
 }
 
-export default function Show({ document, signatories, fileUrl }: ShowProps) {
+export default function Show({
+    document,
+    signatories,
+    activities,
+    fileUrl,
+}: ShowProps) {
     const isDraft = document.status === 'draft';
+    const isPending = document.status === 'pending';
     const hasSignatories = signatories.length > 0;
     const nextPending = signatories.find(
         (signatory) => signatory.status === 'pending',
@@ -217,6 +257,12 @@ export default function Show({ document, signatories, fileUrl }: ShowProps) {
 
     const send = () => {
         router.post(route('documents.send', document.id), undefined, {
+            preserveScroll: true,
+        });
+    };
+
+    const remind = (signatoryId: number) => {
+        router.post(route('signatories.remind', signatoryId), undefined, {
             preserveScroll: true,
         });
     };
@@ -530,9 +576,61 @@ export default function Show({ document, signatories, fileUrl }: ShowProps) {
                                             />
                                         </div>
                                     )}
+
+                                    {isPending &&
+                                        nextPending?.id === signatory.id && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="self-start sm:self-auto"
+                                                onClick={() =>
+                                                    remind(signatory.id)
+                                                }
+                                            >
+                                                <BellRing className="h-4 w-4" />
+                                                Reenviar convite
+                                            </Button>
+                                        )}
                                 </div>
                             ))}
                         </div>
+                    </section>
+
+                    <section className="border-border bg-card text-card-foreground rounded-lg border p-6 shadow-xs">
+                        <h3 className="text-lg font-semibold">Histórico</h3>
+
+                        {activities.length === 0 ? (
+                            <p className="text-muted-foreground mt-2 text-sm">
+                                Nenhum evento registrado ainda.
+                            </p>
+                        ) : (
+                            <ol className="mt-4 space-y-4">
+                                {activities.map((activity) => (
+                                    <li
+                                        key={activity.id}
+                                        className="flex items-start gap-3"
+                                    >
+                                        <ActivityIcon event={activity.event} />
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium">
+                                                {activity.description}
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                                {formatDateTime(
+                                                    activity.createdAt,
+                                                )}
+                                                {activity.causer &&
+                                                    ` · ${activity.causer}`}
+                                                {activity.signatory &&
+                                                    ` · ${activity.signatory}`}
+                                                {activity.ip &&
+                                                    ` · IP ${activity.ip}`}
+                                            </p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ol>
+                        )}
                     </section>
 
                     <div className="border-border bg-card overflow-hidden rounded-lg border shadow-xs">
