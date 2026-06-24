@@ -25,6 +25,7 @@ export interface DocumentData {
     createdAt: string;
     signatoryCount: number;
     signedCount: number;
+    hasCertificate: boolean;
 }
 
 export interface SignatoryData {

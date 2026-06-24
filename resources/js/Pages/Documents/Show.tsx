@@ -29,6 +29,7 @@ import {
     CheckCircle2,
     Clock3,
     Download,
+    FileCheck,
     FileText,
     Mail,
     Pencil,
@@ -45,6 +46,7 @@ type ShowProps = PageProps<{
     signatories: SignatoryData[];
     activities: ActivityData[];
     fileUrl: string;
+    certificateUrl: string;
 }>;
 
 type SignatoryForm = {
@@ -242,9 +244,11 @@ export default function Show({
     signatories,
     activities,
     fileUrl,
+    certificateUrl,
 }: ShowProps) {
     const isDraft = document.status === 'draft';
     const isPending = document.status === 'pending';
+    const isCompleted = document.status === 'completed';
     const hasSignatories = signatories.length > 0;
     const nextPending = signatories.find(
         (signatory) => signatory.status === 'pending',
@@ -318,6 +322,15 @@ export default function Show({
                                     Baixar
                                 </a>
                             </Button>
+
+                            {isCompleted && document.hasCertificate && (
+                                <Button asChild variant="outline" size="sm">
+                                    <a href={certificateUrl} download>
+                                        <FileCheck className="h-4 w-4" />
+                                        Baixar certificado
+                                    </a>
+                                </Button>
+                            )}
 
                             {isDraft && (
                                 <Dialog>

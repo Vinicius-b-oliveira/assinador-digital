@@ -63,6 +63,22 @@ class DocumentStorageService
         }
     }
 
+    /**
+     * Stream do arquivo como download (disposition attachment).
+     */
+    public function downloadResponse(string $path, string $downloadName): StreamedResponse
+    {
+        try {
+            if (! Storage::disk(self::DISK)->exists($path)) {
+                throw new NotFoundHttpException('Arquivo não encontrado no storage.');
+            }
+
+            return Storage::disk(self::DISK)->download($path, $downloadName);
+        } catch (UnableToCheckExistence|UnableToRetrieveMetadata) {
+            throw new NotFoundHttpException('Arquivo não encontrado no storage.');
+        }
+    }
+
     public function delete(string $path): void
     {
         Storage::disk(self::DISK)->delete($path);

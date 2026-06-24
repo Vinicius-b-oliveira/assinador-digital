@@ -24,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('documents/{document}/file', [DocumentController::class, 'file'])->name('documents.file');
+    Route::get('documents/{document}/certificate', [DocumentController::class, 'certificate'])->name('documents.certificate');
     Route::post('documents/{document}/send', [DocumentController::class, 'send'])->name('documents.send');
     Route::post('documents/{document}/signatories', [SignatoryController::class, 'store'])->name('documents.signatories.store');
     Route::put('documents/{document}/signatories/reorder', [SignatoryController::class, 'reorder'])->name('documents.signatories.reorder');

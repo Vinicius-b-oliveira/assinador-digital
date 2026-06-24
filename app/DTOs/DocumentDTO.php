@@ -16,6 +16,7 @@ final class DocumentDTO
         public readonly string $createdAt,
         public readonly int $signatoryCount,
         public readonly int $signedCount,
+        public readonly bool $hasCertificate,
     ) {}
 
     public static function fromModel(Document $document): self
@@ -29,6 +30,7 @@ final class DocumentDTO
             createdAt: $document->created_at->toIso8601String(),
             signatoryCount: $document->signatories_count ?? 0,
             signedCount: $document->signatures_count ?? 0,
+            hasCertificate: $document->certificate_path !== null,
         );
     }
 
@@ -55,6 +57,7 @@ final class DocumentDTO
             'createdAt' => $this->createdAt,
             'signatoryCount' => $this->signatoryCount,
             'signedCount' => $this->signedCount,
+            'hasCertificate' => $this->hasCertificate,
         ];
     }
 }

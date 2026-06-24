@@ -75,6 +75,7 @@ class DocumentController extends Controller
             'signatories' => SignatoryDTO::collection($document->signatories),
             'activities' => ActivityDTO::collection($activities),
             'fileUrl' => route('documents.file', $document),
+            'certificateUrl' => route('documents.certificate', $document),
         ]);
     }
 
@@ -122,5 +123,20 @@ class DocumentController extends Controller
         $this->authorize('view', $document);
 
         return $this->storage->inlineResponse($document->file_path, $document->file_original_name);
+    }
+
+    public function certificate(Document $document): StreamedResponse
+    {
+        $this->authorize('view', $document);
+
+        abort_unless(
+            $document->status === DocumentStatus::Completed && $document->certificate_path !== null,
+            404,
+        );
+
+        return $this->storage->downloadResponse(
+            $document->certificate_path,
+            'certificado-'.$document->id.'.pdf',
+        );
     }
 }
