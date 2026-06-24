@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Enums\DocumentStatus;
 use App\Enums\SignatoryStatus;
-use App\Mail\DocumentCompletedMail;
+use App\Jobs\GenerateSignatureCertificateJob;
 use App\Mail\SigningInvitationMail;
 use App\Models\Document;
 use App\Models\Signatory;
@@ -133,7 +133,7 @@ class SignatoryService
             ->event('completed')
             ->log('Documento concluído — todos assinaram');
 
-        Mail::to($document->user->email)->queue(new DocumentCompletedMail($document));
+        GenerateSignatureCertificateJob::dispatch($document);
     }
 
     private function compactOrder(Document $document): void

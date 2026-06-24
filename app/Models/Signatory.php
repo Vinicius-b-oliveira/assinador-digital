@@ -33,11 +33,17 @@ class Signatory extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<Document, $this>
+     */
     public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class);
     }
 
+    /**
+     * @return HasOne<Signature, $this>
+     */
     public function signature(): HasOne
     {
         return $this->hasOne(Signature::class);

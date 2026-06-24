@@ -64,7 +64,11 @@ class DocumentController extends Controller
             'signatories as signatures_count' => fn ($query) => $query->where('status', 'signed'),
         ]);
 
-        $activities = Activity::forSubject($document)->with('causer')->latest()->get();
+        $activities = Activity::forSubject($document)
+            ->with('causer')
+            ->latest()
+            ->latest('id')
+            ->get();
 
         return Inertia::render('Documents/Show', [
             'document' => DocumentDTO::fromModel($document)->toArray(),

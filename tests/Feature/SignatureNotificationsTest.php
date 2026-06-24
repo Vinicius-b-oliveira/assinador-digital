@@ -1,8 +1,8 @@
 <?php
 
 use App\Enums\SignatoryStatus;
+use App\Jobs\GenerateSignatureCertificateJob;
 use App\Jobs\SendSignatureReminderJob;
-use App\Mail\DocumentCompletedMail;
 use App\Mail\SignatureRecordedMail;
 use App\Mail\SigningInvitationMail;
 use App\Models\Document;
@@ -24,7 +24,7 @@ test('the owner is notified when a signatory signs', function () {
     Mail::fake();
     $owner = User::factory()->create();
     $document = Document::factory()->for($owner)->pending()->withSignatories(2)->create();
-    $first = $document->signatories()->orderBy('order')->first();
+    $first = $document->signatories()->orderBy('order')->firstOrFail();
 
     $this->post(route('public.sign.sign', $first->token), [
         'signature_data' => signature(),
@@ -38,8 +38,8 @@ test('the owner is notified when a signatory signs', function () {
     );
 });
 
-test('the owner is notified when the document is completed', function () {
-    Mail::fake();
+test('completing the document dispatches the certificate generation job', function () {
+    Bus::fake();
     $owner = User::factory()->create();
     $document = Document::factory()->for($owner)->pending()->withSignatories(2)->create();
     [$first, $second] = $document->signatories()->orderBy('order')->get()->all();
@@ -52,9 +52,9 @@ test('the owner is notified when the document is completed', function () {
         'accept_terms' => true,
     ])->assertRedirect();
 
-    Mail::assertQueued(
-        DocumentCompletedMail::class,
-        fn (DocumentCompletedMail $mail) => $mail->document->is($document) && $mail->hasTo($owner->email)
+    Bus::assertDispatched(
+        GenerateSignatureCertificateJob::class,
+        fn (GenerateSignatureCertificateJob $job) => $job->document->is($document)
     );
 });
 
@@ -62,7 +62,7 @@ test('the owner can send a reminder to the current signatory', function () {
     Bus::fake();
     $owner = User::factory()->create();
     $document = Document::factory()->for($owner)->pending()->withSignatories(2)->create();
-    $first = $document->signatories()->orderBy('order')->first();
+    $first = $document->signatories()->orderBy('order')->firstOrFail();
 
     $this->actingAs($owner)
         ->post(route('signatories.remind', $first))
@@ -77,7 +77,7 @@ test('the owner can send a reminder to the current signatory', function () {
 test('a stranger cannot send a reminder', function () {
     Bus::fake();
     $document = Document::factory()->pending()->withSignatories(1)->create();
-    $first = $document->signatories()->first();
+    $first = $document->signatories()->firstOrFail();
 
     $this->actingAs(User::factory()->create())
         ->post(route('signatories.remind', $first))
@@ -90,7 +90,7 @@ test('a reminder cannot be sent to a signatory who already signed', function () 
     Bus::fake();
     $owner = User::factory()->create();
     $document = Document::factory()->for($owner)->pending()->withSignatories(2)->create();
-    $first = $document->signatories()->orderBy('order')->first();
+    $first = $document->signatories()->orderBy('order')->firstOrFail();
     $first->update(['status' => SignatoryStatus::Signed, 'signed_at' => now()]);
 
     $this->actingAs($owner)
@@ -103,7 +103,7 @@ test('a reminder cannot be sent to a signatory who already signed', function () 
 test('the reminder job re-sends the invitation to the current signatory', function () {
     Mail::fake();
     $document = Document::factory()->pending()->withSignatories(2)->create();
-    $first = $document->signatories()->orderBy('order')->first();
+    $first = $document->signatories()->orderBy('order')->firstOrFail();
 
     (new SendSignatureReminderJob($first))->handle(app(SigningService::class));
 
@@ -116,7 +116,7 @@ test('the reminder job re-sends the invitation to the current signatory', functi
 test('the reminder job does nothing when it is not the signatory turn', function () {
     Mail::fake();
     $document = Document::factory()->pending()->withSignatories(2)->create();
-    $second = $document->signatories()->orderBy('order')->get()->last();
+    $second = $document->signatories()->reorder('order', 'desc')->firstOrFail();
 
     (new SendSignatureReminderJob($second))->handle(app(SigningService::class));
 

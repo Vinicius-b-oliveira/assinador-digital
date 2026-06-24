@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\Document;
+use App\Models\Signatory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -11,11 +11,11 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class DocumentCompletedMail extends Mailable implements ShouldQueue
+class SignedDocumentCopyMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Document $document)
+    public function __construct(public Signatory $signatory)
     {
         $this->afterCommit();
     }
@@ -23,17 +23,17 @@ class DocumentCompletedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Documento concluído: '.$this->document->title,
+            subject: 'Documento concluído: '.$this->signatory->document->title,
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.document-completed',
+            view: 'emails.signed-document-copy',
             with: [
-                'documentTitle' => $this->document->title,
-                'documentUrl' => route('documents.show', $this->document),
+                'signatoryName' => $this->signatory->name,
+                'documentTitle' => $this->signatory->document->title,
             ],
         );
     }
@@ -44,7 +44,7 @@ class DocumentCompletedMail extends Mailable implements ShouldQueue
     public function attachments(): array
     {
         return [
-            Attachment::fromStorageDisk('s3', $this->document->certificate_path)
+            Attachment::fromStorageDisk('s3', $this->signatory->document->certificate_path)
                 ->as('certificado-assinaturas.pdf')
                 ->withMime('application/pdf'),
         ];
