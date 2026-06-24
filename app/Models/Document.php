@@ -37,6 +37,11 @@ class Document extends Model
         return $this->hasMany(Signatory::class)->orderBy('order');
     }
 
+    public function signatures(): HasMany
+    {
+        return $this->hasMany(Signature::class);
+    }
+
     public function scopePending(Builder $query): void
     {
         $query->where('status', DocumentStatus::Pending);
