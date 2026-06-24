@@ -14,6 +14,7 @@ export type PageProps<
 };
 
 export type DocumentStatus = 'draft' | 'pending' | 'completed' | 'cancelled';
+export type SignatoryStatus = 'pending' | 'signed' | 'declined';
 
 export interface DocumentData {
     id: number;
@@ -24,6 +25,15 @@ export interface DocumentData {
     createdAt: string;
     signatoryCount: number;
     signedCount: number;
+}
+
+export interface SignatoryData {
+    id: number;
+    name: string;
+    email: string;
+    order: number;
+    status: SignatoryStatus;
+    signedAt: string | null;
 }
 
 export interface PaginationLink {

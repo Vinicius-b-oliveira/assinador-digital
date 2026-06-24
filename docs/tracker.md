@@ -45,16 +45,16 @@ Convenção de status: `[ ]` pendente · `[~]` em andamento · `[x]` concluído 
 
 ### Dev B — Signatários
 
-- [ ] Migration `signatories` + Enum `SignatoryStatus`
-- [ ] Model `Signatory` (relations, scopes `pending`, casts, token uuid)
-- [ ] Factory + states (`pending`, `signed`, `declined`)
-- [ ] `SignatoryService` (add, reorder, remove, gerar token, advanceFlow)
-- [ ] `SignatoryPolicy` (manage no dono, enquanto draft)
-- [ ] `StoreSignatoryRequest`
-- [ ] `SignatoryDTO`
-- [ ] `SignatoryController` (store, update, destroy, reorder)
-- [ ] Tela: gerenciar signatários (dentro do `Documents/Show.tsx` ou rota dedicada)
-- [ ] Testes Pest
+- [x] Migration `signatories` + Enum `SignatoryStatus`
+- [x] Model `Signatory` (relations, scopes `pending`, casts, token uuid)
+- [x] Factory + states (`pending`, `signed`, `declined`)
+- [x] `SignatoryService` (add, reorder, remove, gerar token, advanceFlow)
+- [x] `SignatoryPolicy` (manage no dono, enquanto draft)
+- [x] `StoreSignatoryRequest`
+- [x] `SignatoryDTO`
+- [x] `SignatoryController` (store, update, destroy, reorder)
+- [x] Tela: gerenciar signatários (dentro do `Documents/Show.tsx` ou rota dedicada)
+- [x] Testes Pest
 
 ---
 
@@ -112,7 +112,7 @@ Convenção de status: `[ ]` pendente · `[~]` em andamento · `[x]` concluído 
 Use esta seção para registrar coisas que apareceram durante o desenvolvimento e que precisam ser endereçadas depois — bugs pequenos, refatoramentos, decisões em aberto.
 
 - [x] `User::documents()` relation adicionada (junto com o model `Document`)
-- [ ] Decidir UX da reordenação de signatários (drag-and-drop vs. setas)
+- [x] Decidir UX da reordenação de signatários (drag-and-drop vs. setas) — setas na tela do documento
 - [ ] Validar limite real de upload de PDF (atual: 20MB) com a banca/orientador
 - [ ] `DocumentService::delete` faz soft delete e **preserva** o arquivo no S3; criar rotina de purge (force delete) que limpe o storage quando for descartar de vez
 - [x] Exemplos de `activitylog` nas docs corrigidos para a API v5 (`getActivitylogOptions()` + namespaces `Models\Concerns\LogsActivity` / `Support\LogOptions`)

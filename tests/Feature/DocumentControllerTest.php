@@ -99,6 +99,14 @@ test('the file route streams the pdf inline for the owner and forbids strangers'
         ->assertForbidden();
 });
 
+test('the file route returns not found when the stored pdf is missing', function () {
+    $document = Document::factory()->create();
+
+    $this->actingAs($document->user)
+        ->get(route('documents.file', $document))
+        ->assertNotFound();
+});
+
 test('a draft document can be updated by its owner', function () {
     $document = Document::factory()->draft()->create();
 
@@ -146,4 +154,12 @@ test('a non-draft document cannot be deleted', function () {
         ->assertForbidden();
 
     expect($document->fresh())->not->toBeNull();
+});
+
+test('a draft document can only be sent when it has signatories', function () {
+    $emptyDocument = Document::factory()->draft()->create();
+    $readyDocument = Document::factory()->draft()->withSignatories()->create();
+
+    expect($emptyDocument->user->can('send', $emptyDocument))->toBeFalse()
+        ->and($readyDocument->user->can('send', $readyDocument))->toBeTrue();
 });
