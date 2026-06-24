@@ -13,13 +13,15 @@
     </x-pulse::card-header>
 
     <x-pulse::scroll :expand="$expand">
-        <div class="flex items-end justify-between gap-2 h-32">
+        <div class="flex flex-col gap-2">
             @foreach ($perDay as $day)
-                <div class="flex flex-1 flex-col items-center gap-1">
-                    <span class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ $day['total'] }}</span>
-                    <div class="w-full rounded-t bg-purple-500/70 dark:bg-purple-400/70"
-                        style="height: {{ max(round(($day['total'] / $max) * 100), 2) }}%"></div>
-                    <span class="text-xs text-gray-400 dark:text-gray-600">{{ $day['label'] }}</span>
+                <div class="flex items-center gap-3">
+                    <span class="w-10 text-xs text-gray-400 dark:text-gray-600">{{ $day['label'] }}</span>
+                    <div class="h-2 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+                        <div class="h-full rounded-full bg-purple-500 dark:bg-purple-400"
+                            style="width: {{ $day['total'] > 0 ? max(round(($day['total'] / $max) * 100), 4) : 0 }}%"></div>
+                    </div>
+                    <span class="w-6 text-right text-sm font-bold text-gray-700 dark:text-gray-300">{{ $day['total'] }}</span>
                 </div>
             @endforeach
         </div>

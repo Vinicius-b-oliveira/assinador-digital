@@ -16,4 +16,10 @@
     <livewire:pulse.slow-jobs cols="6" />
 
     <livewire:pulse.slow-outgoing-requests cols="6" />
+
+    <livewire:pulse.database-health cols="4" />
+
+    <livewire:pulse.documents-by-status cols="4" />
+
+    <livewire:pulse.signatures-collected cols="4" />
 </x-pulse>
