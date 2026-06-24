@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ReorderSignatoriesRequest;
 use App\Http\Requests\StoreSignatoryRequest;
+use App\Jobs\SendSignatureReminderJob;
 use App\Models\Document;
 use App\Models\Signatory;
 use App\Services\SignatoryService;
@@ -55,5 +56,14 @@ class SignatoryController extends Controller
         $this->service->reorder($document, $request->validated('signatories'));
 
         return to_route('documents.show', $document);
+    }
+
+    public function remind(Signatory $signatory): RedirectResponse
+    {
+        $this->authorize('remind', $signatory);
+
+        SendSignatureReminderJob::dispatch($signatory);
+
+        return back();
     }
 }

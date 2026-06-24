@@ -29,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('documents/{document}/signatories/reorder', [SignatoryController::class, 'reorder'])->name('documents.signatories.reorder');
     Route::put('signatories/{signatory}', [SignatoryController::class, 'update'])->name('signatories.update');
     Route::delete('signatories/{signatory}', [SignatoryController::class, 'destroy'])->name('signatories.destroy');
+    Route::post('signatories/{signatory}/remind', [SignatoryController::class, 'remind'])->name('signatories.remind');
     Route::resource('documents', DocumentController::class);
 });
 

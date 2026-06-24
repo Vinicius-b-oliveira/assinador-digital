@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\DocumentStatus;
 use App\Enums\SignatoryStatus;
+use App\Mail\DocumentCompletedMail;
 use App\Mail\SigningInvitationMail;
 use App\Models\Document;
 use App\Models\Signatory;
@@ -56,7 +57,8 @@ class SignatoryService
     }
 
     /**
-     * @param array<int, int> $orderedIds
+     * @param  array<int, int>  $orderedIds
+     *
      * @throws Throwable
      */
     public function reorder(Document $document, array $orderedIds): void
@@ -81,6 +83,7 @@ class SignatoryService
 
     /**
      * Marca o documento como pendente e convida o primeiro signatário da ordem.
+     *
      * @throws Throwable
      */
     public function send(Document $document): void
@@ -119,6 +122,8 @@ class SignatoryService
         }
 
         $document->update(['status' => DocumentStatus::Completed]);
+
+        Mail::to($document->user->email)->queue(new DocumentCompletedMail($document));
     }
 
     private function compactOrder(Document $document): void

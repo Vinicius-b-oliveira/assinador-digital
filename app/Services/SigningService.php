@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Enums\DocumentStatus;
 use App\Enums\SignatoryStatus;
+use App\Mail\SignatureRecordedMail;
 use App\Models\Signatory;
 use App\Models\Signature;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -68,6 +70,8 @@ readonly class SigningService
             ]);
 
             $this->signatoryService->advanceFlow($locked->document);
+
+            Mail::to($locked->document->user->email)->queue(new SignatureRecordedMail($locked));
 
             return $signature;
         });
