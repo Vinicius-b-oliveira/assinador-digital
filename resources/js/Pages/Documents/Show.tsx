@@ -35,7 +35,7 @@ import {
     XCircle,
     type LucideIcon,
 } from 'lucide-react';
-import { type FormEvent } from 'react';
+import { type SyntheticEvent } from 'react';
 
 type ShowProps = PageProps<{
     document: DocumentData;
@@ -94,7 +94,7 @@ function EditSignatoryDialog({ signatory }: { signatory: SignatoryData }) {
         email: signatory.email,
     });
 
-    const submit = (event: FormEvent) => {
+    const submit = (event: SyntheticEvent) => {
         event.preventDefault();
         form.put(route('signatories.update', signatory.id), {
             preserveScroll: true,
@@ -221,7 +221,7 @@ export default function Show({ document, signatories, fileUrl }: ShowProps) {
         });
     };
 
-    const addSignatory = (event: FormEvent) => {
+    const addSignatory = (event: SyntheticEvent) => {
         event.preventDefault();
         form.post(route('documents.signatories.store', document.id), {
             preserveScroll: true,

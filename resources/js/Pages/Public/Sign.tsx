@@ -22,7 +22,7 @@ import {
     XCircle,
     type LucideIcon,
 } from 'lucide-react';
-import { type FormEvent } from 'react';
+import { type SyntheticEvent } from 'react';
 
 type SignState =
     | 'ready'
@@ -134,7 +134,7 @@ export default function Sign({
         accept_terms: false,
     });
 
-    const submit = (event: FormEvent) => {
+    const submit = (event: SyntheticEvent) => {
         event.preventDefault();
         form.post(route('public.sign.sign', token), { preserveScroll: true });
     };
