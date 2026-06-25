@@ -47,6 +47,6 @@ sail pnpm run build                        # build de produção
 
 ## Padrões do projeto
 
-- **Arquitetura:** Request → FormRequest → Controller (fino) → Policy → Service → Model → DTO → `Inertia::render()`. Detalhes em [docs/boas-praticas.md](docs/boas-praticas.md).
+- **Arquitetura:** Request → FormRequest → Controller (fino) → Policy → Service → Model → DTO → `Inertia::render()`.
 - **Storage S3** acessado só por `DocumentStorageService` (nunca `Storage::` direto fora dele).
 - **Pastas React:** `Pages/` e `Layouts/` em PascalCase (resolvidos por nome pelo Inertia); `components/` (com `components/ui/` para primitivos shadcn) e `lib/` em lowercase.
