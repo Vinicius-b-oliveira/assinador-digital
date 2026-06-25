@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Enums\DocumentStatus;
+use App\Enums\SignatoryStatus;
 use App\Models\Document;
 use App\Models\Signatory;
 use App\Models\User;
@@ -13,6 +14,13 @@ class SignatoryPolicy
     {
         return $user->id === $document->user_id
             && $document->status === DocumentStatus::Draft;
+    }
+
+    public function remind(User $user, Signatory $signatory): bool
+    {
+        return $user->id === $signatory->document->user_id
+            && $signatory->document->status === DocumentStatus::Pending
+            && $signatory->status === SignatoryStatus::Pending;
     }
 
     public function update(User $user, Signatory $signatory): bool

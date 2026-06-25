@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-#[Fillable(['user_id', 'title', 'description', 'file_path', 'file_original_name', 'status'])]
+#[Fillable(['user_id', 'title', 'description', 'file_path', 'file_original_name', 'certificate_path', 'status'])]
 class Document extends Model
 {
     /** @use HasFactory<DocumentFactory> */
@@ -27,14 +27,28 @@ class Document extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return HasMany<Signatory, $this>
+     */
     public function signatories(): HasMany
     {
         return $this->hasMany(Signatory::class)->orderBy('order');
+    }
+
+    /**
+     * @return HasMany<Signature, $this>
+     */
+    public function signatures(): HasMany
+    {
+        return $this->hasMany(Signature::class);
     }
 
     public function scopePending(Builder $query): void
@@ -55,7 +69,14 @@ class Document extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['title', 'description', 'status'])
-            ->logOnlyDirty();
+            ->logOnly(['title', 'description'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->setDescriptionForEvent(fn (string $eventName): string => match ($eventName) {
+                'created' => 'Documento criado',
+                'updated' => 'Documento atualizado',
+                'deleted' => 'Documento excluído',
+                default => $eventName,
+            });
     }
 }

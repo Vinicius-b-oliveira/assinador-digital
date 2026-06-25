@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import {
+    ActivityData,
     DocumentData,
     PageProps,
     SignatoryData,
@@ -24,22 +25,28 @@ import {
     ArrowDown,
     ArrowLeft,
     ArrowUp,
+    BellRing,
     CheckCircle2,
     Clock3,
     Download,
+    FileCheck,
+    FileText,
     Mail,
     Pencil,
+    Send,
     Trash2,
     UserPlus,
     XCircle,
     type LucideIcon,
 } from 'lucide-react';
-import { type FormEvent } from 'react';
+import { type SyntheticEvent } from 'react';
 
 type ShowProps = PageProps<{
     document: DocumentData;
     signatories: SignatoryData[];
+    activities: ActivityData[];
     fileUrl: string;
+    certificateUrl: string;
 }>;
 
 type SignatoryForm = {
@@ -74,6 +81,36 @@ function formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString('pt-BR');
 }
 
+function formatDateTime(iso: string): string {
+    return new Date(iso).toLocaleString('pt-BR');
+}
+
+const activityIconConfig: Record<
+    string,
+    { icon: LucideIcon; className: string }
+> = {
+    created: { icon: FileText, className: 'text-muted-foreground' },
+    sent: { icon: Send, className: 'text-blue-600 dark:text-blue-400' },
+    signed: {
+        icon: CheckCircle2,
+        className: 'text-emerald-600 dark:text-emerald-400',
+    },
+    completed: {
+        icon: CheckCircle2,
+        className: 'text-emerald-600 dark:text-emerald-400',
+    },
+    declined: { icon: XCircle, className: 'text-destructive' },
+};
+
+function ActivityIcon({ event }: { event: string | null }) {
+    const { icon: Icon, className } = activityIconConfig[event ?? ''] ?? {
+        icon: Clock3,
+        className: 'text-muted-foreground',
+    };
+
+    return <Icon className={`h-4 w-4 shrink-0 ${className}`} />;
+}
+
 function SignatoryStatusBadge({ status }: { status: SignatoryStatus }) {
     const { label, className, icon: Icon } = signatoryStatusConfig[status];
 
@@ -93,7 +130,7 @@ function EditSignatoryDialog({ signatory }: { signatory: SignatoryData }) {
         email: signatory.email,
     });
 
-    const submit = (event: FormEvent) => {
+    const submit = (event: SyntheticEvent) => {
         event.preventDefault();
         form.put(route('signatories.update', signatory.id), {
             preserveScroll: true,
@@ -202,15 +239,39 @@ function DeleteSignatoryDialog({ signatory }: { signatory: SignatoryData }) {
     );
 }
 
-export default function Show({ document, signatories, fileUrl }: ShowProps) {
+export default function Show({
+    document,
+    signatories,
+    activities,
+    fileUrl,
+    certificateUrl,
+}: ShowProps) {
     const isDraft = document.status === 'draft';
+    const isPending = document.status === 'pending';
+    const isCompleted = document.status === 'completed';
+    const hasSignatories = signatories.length > 0;
+    const nextPending = signatories.find(
+        (signatory) => signatory.status === 'pending',
+    );
     const form = useForm<SignatoryForm>({ name: '', email: '' });
 
     const destroy = () => {
         router.delete(route('documents.destroy', document.id));
     };
 
-    const addSignatory = (event: FormEvent) => {
+    const send = () => {
+        router.post(route('documents.send', document.id), undefined, {
+            preserveScroll: true,
+        });
+    };
+
+    const remind = (signatoryId: number) => {
+        router.post(route('signatories.remind', signatoryId), undefined, {
+            preserveScroll: true,
+        });
+    };
+
+    const addSignatory = (event: SyntheticEvent) => {
         event.preventDefault();
         form.post(route('documents.signatories.store', document.id), {
             preserveScroll: true,
@@ -261,6 +322,57 @@ export default function Show({ document, signatories, fileUrl }: ShowProps) {
                                     Baixar
                                 </a>
                             </Button>
+
+                            {isCompleted && document.hasCertificate && (
+                                <Button asChild variant="outline" size="sm">
+                                    <a href={certificateUrl} download>
+                                        <FileCheck className="h-4 w-4" />
+                                        Baixar certificado
+                                    </a>
+                                </Button>
+                            )}
+
+                            {isDraft && (
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button
+                                            size="sm"
+                                            disabled={!hasSignatories}
+                                            title={
+                                                hasSignatories
+                                                    ? undefined
+                                                    : 'Adicione ao menos um signatário'
+                                            }
+                                        >
+                                            <Send className="h-4 w-4" />
+                                            Enviar para assinatura
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>
+                                                Enviar para assinatura
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                                O primeiro signatário receberá o
+                                                convite por e-mail. Após o
+                                                envio, o documento não poderá
+                                                mais ser editado.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <DialogFooter>
+                                            <DialogClose asChild>
+                                                <Button variant="outline">
+                                                    Cancelar
+                                                </Button>
+                                            </DialogClose>
+                                            <Button onClick={send}>
+                                                Enviar
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
 
                             {isDraft && (
                                 <Button asChild variant="outline" size="sm">
@@ -326,6 +438,12 @@ export default function Show({ document, signatories, fileUrl }: ShowProps) {
                             {document.signedCount}/{document.signatoryCount}{' '}
                             assinaram
                         </p>
+                        {document.status === 'pending' && nextPending && (
+                            <p className="flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-300">
+                                <Clock3 className="h-3.5 w-3.5" />
+                                Aguardando assinatura de {nextPending.name}
+                            </p>
+                        )}
                     </div>
 
                     <section className="border-border bg-card text-card-foreground rounded-lg border p-6 shadow-xs">
@@ -430,7 +548,7 @@ export default function Show({ document, signatories, fileUrl }: ShowProps) {
                                                 status={signatory.status}
                                             />
                                         </div>
-                                        <p className="text-muted-foreground mt-1 flex items-center gap-1 break-all text-sm">
+                                        <p className="text-muted-foreground mt-1 flex items-center gap-1 text-sm break-all">
                                             <Mail className="h-3.5 w-3.5" />
                                             {signatory.email}
                                         </p>
@@ -471,9 +589,61 @@ export default function Show({ document, signatories, fileUrl }: ShowProps) {
                                             />
                                         </div>
                                     )}
+
+                                    {isPending &&
+                                        nextPending?.id === signatory.id && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="self-start sm:self-auto"
+                                                onClick={() =>
+                                                    remind(signatory.id)
+                                                }
+                                            >
+                                                <BellRing className="h-4 w-4" />
+                                                Reenviar convite
+                                            </Button>
+                                        )}
                                 </div>
                             ))}
                         </div>
+                    </section>
+
+                    <section className="border-border bg-card text-card-foreground rounded-lg border p-6 shadow-xs">
+                        <h3 className="text-lg font-semibold">Histórico</h3>
+
+                        {activities.length === 0 ? (
+                            <p className="text-muted-foreground mt-2 text-sm">
+                                Nenhum evento registrado ainda.
+                            </p>
+                        ) : (
+                            <ol className="mt-4 space-y-4">
+                                {activities.map((activity) => (
+                                    <li
+                                        key={activity.id}
+                                        className="flex items-start gap-3"
+                                    >
+                                        <ActivityIcon event={activity.event} />
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium">
+                                                {activity.description}
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                                {formatDateTime(
+                                                    activity.createdAt,
+                                                )}
+                                                {activity.causer &&
+                                                    ` · ${activity.causer}`}
+                                                {activity.signatory &&
+                                                    ` · ${activity.signatory}`}
+                                                {activity.ip &&
+                                                    ` · IP ${activity.ip}`}
+                                            </p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ol>
+                        )}
                     </section>
 
                     <div className="border-border bg-card overflow-hidden rounded-lg border shadow-xs">

@@ -16,6 +16,8 @@ class DocumentStorageService
 
     private const string DIRECTORY = 'documents';
 
+    private const string CERTIFICATE_DIRECTORY = 'certificates';
+
     /**
      * Armazena o PDF enviado e devolve o caminho relativo no disco.
      */
@@ -24,6 +26,18 @@ class DocumentStorageService
         $path = self::DIRECTORY.'/'.Str::uuid().'.pdf';
 
         Storage::disk(self::DISK)->put($path, $file->getContent());
+
+        return $path;
+    }
+
+    /**
+     * Armazena o PDF do certificado e devolve o caminho relativo no disco.
+     */
+    public function storeCertificate(string $contents): string
+    {
+        $path = self::CERTIFICATE_DIRECTORY.'/'.Str::uuid().'.pdf';
+
+        Storage::disk(self::DISK)->put($path, $contents);
 
         return $path;
     }
@@ -46,6 +60,22 @@ class DocumentStorageService
             );
         } catch (UnableToCheckExistence|UnableToRetrieveMetadata) {
             throw new NotFoundHttpException('Arquivo do documento não encontrado no storage.');
+        }
+    }
+
+    /**
+     * Stream do arquivo como download (disposition attachment).
+     */
+    public function downloadResponse(string $path, string $downloadName): StreamedResponse
+    {
+        try {
+            if (! Storage::disk(self::DISK)->exists($path)) {
+                throw new NotFoundHttpException('Arquivo não encontrado no storage.');
+            }
+
+            return Storage::disk(self::DISK)->download($path, $downloadName);
+        } catch (UnableToCheckExistence|UnableToRetrieveMetadata) {
+            throw new NotFoundHttpException('Arquivo não encontrado no storage.');
         }
     }
 

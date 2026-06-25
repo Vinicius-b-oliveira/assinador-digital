@@ -25,6 +25,18 @@ export interface DocumentData {
     createdAt: string;
     signatoryCount: number;
     signedCount: number;
+    hasCertificate: boolean;
+}
+
+export interface DashboardStats {
+    total: number;
+    draft: number;
+    pending: number;
+    completed: number;
+    cancelled: number;
+    signaturesCollected: number;
+    completionRate: number;
+    recentDocuments: DocumentData[];
 }
 
 export interface SignatoryData {
@@ -34,6 +46,16 @@ export interface SignatoryData {
     order: number;
     status: SignatoryStatus;
     signedAt: string | null;
+}
+
+export interface ActivityData {
+    id: number;
+    event: string | null;
+    description: string;
+    causer: string | null;
+    signatory: string | null;
+    ip: string | null;
+    createdAt: string;
 }
 
 export interface PaginationLink {

@@ -107,6 +107,36 @@ test('the file route returns not found when the stored pdf is missing', function
         ->assertNotFound();
 });
 
+test('the certificate route downloads the pdf for the owner and forbids strangers', function () {
+    $document = Document::factory()->completed()->create(['certificate_path' => 'certificates/cert.pdf']);
+    Storage::disk('s3')->put($document->certificate_path, 'conteudo-certificado');
+
+    $response = $this->actingAs($document->user)->get(route('documents.certificate', $document));
+
+    $response->assertOk();
+    expect($response->headers->get('content-disposition'))->toContain('attachment');
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('documents.certificate', $document))
+        ->assertForbidden();
+});
+
+test('the certificate route returns not found when the document is not completed', function () {
+    $document = Document::factory()->pending()->create(['certificate_path' => 'certificates/cert.pdf']);
+
+    $this->actingAs($document->user)
+        ->get(route('documents.certificate', $document))
+        ->assertNotFound();
+});
+
+test('the certificate route returns not found when there is no certificate', function () {
+    $document = Document::factory()->completed()->create(['certificate_path' => null]);
+
+    $this->actingAs($document->user)
+        ->get(route('documents.certificate', $document))
+        ->assertNotFound();
+});
+
 test('a draft document can be updated by its owner', function () {
     $document = Document::factory()->draft()->create();
 
