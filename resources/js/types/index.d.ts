@@ -28,6 +28,17 @@ export interface DocumentData {
     hasCertificate: boolean;
 }
 
+export interface DashboardStats {
+    total: number;
+    draft: number;
+    pending: number;
+    completed: number;
+    cancelled: number;
+    signaturesCollected: number;
+    completionRate: number;
+    recentDocuments: DocumentData[];
+}
+
 export interface SignatoryData {
     id: number;
     name: string;
